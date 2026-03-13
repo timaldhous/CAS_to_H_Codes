@@ -215,6 +215,7 @@ h_code_controls = {
     'H360Fd': 'Specific',
     'H360Df': 'Specific',
     'H361fd': 'Specific',
+    'H361d': 'Specific',
     'H420': 'Standard'
 }
 
