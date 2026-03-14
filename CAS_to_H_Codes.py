@@ -1,7 +1,6 @@
-# @title
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup # Although not explicitly used in the final version, keeping for safety if it was intended elsewhere
 import re
 import json
 
@@ -9,7 +8,7 @@ def get_cid_from_cas_pubchem(cas_number):
     """
     Fetches the PubChem CID for a given CAS number from PubChem.
     """
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+    headers = {'User-Agent': 'Mozilla/50 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
     cid_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cas/{cas_number}/cids/JSON"
     try:
         cid_response = requests.get(cid_url, headers=headers)
@@ -216,28 +215,31 @@ h_code_controls = {
     'H360Fd': 'Specific',
     'H360Df': 'Specific',
     'H361fd': 'Specific',
+    'H361d': 'Specific',
     'H420': 'Standard'
 }
 
+# @title
+
 # 1. Set up the Title and Description
 st.title("CAS to H-Codes Tool")
-st.write("Enter CAS numbers below (separated by commas) to get their corresponding H-Codes and recommended control types.")
+st.write("Enter CAS numbers below (separated by commas) to get the H-codes and recommended control types.")
 
 # 2. Create the Input (This is your text box)
-user_input = st.text_input("CAS Numbers", placeholder="e.g., 67-56-1, 57-27-2")
+user_input = st.text_input("Input CAS Numbers", placeholder="e.g., 67-56-1, 57-27-2")
 
 # 3. Process the Input (Your logic goes here)
 if user_input:
-    cas_numbers = []
+    st.subheader("Processing Results:")
+    cas_numbers_list = []
     for cas_str in user_input.split(','):
         stripped_cas = cas_str.strip()
         if stripped_cas:
-            cas_numbers.append(stripped_cas)
+            cas_numbers_list.append(stripped_cas)
 
-    if cas_numbers:
-        st.subheader("Results:")
-        for cas_number in cas_numbers:
-            st.markdown(f"**CAS: {cas_number}**")
+    if cas_numbers_list:
+        for cas_number in cas_numbers_list:
+            st.markdown(f"### CAS: {cas_number}")
             h_code_results_string = get_h_codes_from_pubchem(cas_number)
 
             if h_code_results_string:
@@ -249,15 +251,15 @@ if user_input:
                         description = match.group(2).strip()
                         control_type = h_code_controls.get(h_code, 'Unknown')
                         if control_type == 'Specific':
-                            st.markdown(f"- **{h_code}**: {description}. **Specific risk assessment required.**")
+                            st.markdown(f"**{h_code}**: {description}. **Specific risk assessment required.**")
                         else:
-                            st.write(f"- **{h_code}**: {description}. Apply {control_type} controls.")
+                            st.write(f"**{h_code}**: {description}. Apply {control_type} controls.")
                     else:
                         st.write(f"  - {statement.strip()}")
             else:
                 st.info(f"No H-codes or safety information found for CAS number {cas_number}.")
-        st.success("Processing complete!")
+        st.success("Processing complete for all entered CAS numbers!")
     else:
-        st.warning("No valid CAS numbers entered after parsing. Please enter one or more CAS numbers separated by commas.")
+        st.warning("No valid CAS numbers were entered after parsing.")
 else:
-    st.info("Waiting for input...")
+    st.info("Waiting for input... Please enter one or more CAS numbers.")
